@@ -1,6 +1,7 @@
 <?php
-echo function_exists('imap_open') ? 'IMAP OK' : 'IMAP FEHLT';
-exit;
+
+
+
 // ----------------------
 // ENV LOADER
 // ----------------------
