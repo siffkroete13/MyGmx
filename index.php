@@ -1,7 +1,5 @@
 <?php
 
-
-
 // ----------------------
 // ENV LOADER
 // ----------------------
@@ -29,16 +27,27 @@ loadEnv(__DIR__ . '/.env');
 // ----------------------
 // CONFIG
 // ----------------------
-$hostname = '{' . $_ENV['IMAP_HOST'] . ':' . $_ENV['IMAP_PORT'] . '/imap/' . $_ENV['IMAP_ENCRYPTION'] . '}Sent';
+$hostname = '{' . $_ENV['IMAP_HOST'] . ':' . $_ENV['IMAP_PORT'] . '/imap/' . $_ENV['IMAP_ENCRYPTION'] . '}Gesendet';
 
 $username = $_ENV['IMAP_USER'];
 $password = $_ENV['IMAP_PASSWORD'];
 
-// deine Absender-Adressen
 $myAddresses = [
     'kk@sva-bl.ch',
     'info@sva-bl.ch'
 ];
+
+$sinceDate = '1-Jan-2024';
+
+
+// ----------------------
+// subjects.txt vorbereiten
+// ----------------------
+$subjectsFile = __DIR__ . '/subjects.txt';
+
+if (!file_exists($subjectsFile)) {
+    file_put_contents($subjectsFile, '');
+}
 
 
 // ----------------------
@@ -54,11 +63,16 @@ if (!$inbox) {
 // ----------------------
 // EMAILS HOLEN
 // ----------------------
-$emails = imap_search($inbox, 'ALL');
+$emails = imap_search($inbox, 'SINCE "' . $sinceDate . '"');
 
 $subjects = [];
 
 if ($emails) {
+
+    rsort($emails);
+
+    // LIMIT (wichtig)
+    $emails = array_slice($emails, 0, 300);
 
     foreach ($emails as $email_number) {
 
@@ -68,11 +82,11 @@ if ($emails) {
 
         $mail = $overview[0];
 
-        $from = strtolower($mail->from ?? '');
+        $to = strtolower($mail->to ?? '');
 
         foreach ($myAddresses as $addr) {
 
-            if (strpos($from, strtolower($addr)) !== false) {
+            if (strpos($to, strtolower($addr)) !== false) {
 
                 $subject = $mail->subject ?? '(kein Betreff)';
                 $subject = imap_utf8($subject);
@@ -94,15 +108,23 @@ sort($subjects);
 
 
 // ----------------------
+// SPEICHERN (DER EINZIGE ZWECK!)
+// ----------------------
+file_put_contents($subjectsFile, implode(PHP_EOL, $subjects));
+
+
+// ----------------------
 // OUTPUT
 // ----------------------
-foreach ($subjects as $s) {
-    echo $s . PHP_EOL;
-}
+echo "<pre>";
+echo "Subjects gespeichert: " . count($subjects) . "\n";
+echo "Datei: " . $subjectsFile . "\n";
 
-// optional speichern
-file_put_contents('subjects.txt', implode(PHP_EOL, $subjects));
-
-
-// ----------------------
 imap_close($inbox);
+
+
+echo '<p>';
+    echo '<a href="extract_abbrechnungs_nr.php" target="_blank">Abbrechnungs-Nummern extrahieren aus E-Mail Subject</a>';
+echo '</p>';
+
+
