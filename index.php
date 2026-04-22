@@ -1,5 +1,16 @@
 <?php
 
+if(
+        !isset($_GET['key'] ) 
+        || $_GET['key'] !== '739454540asdfasdfg'
+) {
+    echo '<p>Du bist nicht berechtigt!<p>';
+}
+
+
+
+require_once(__DIR__ . '/extract_from_mail.php');
+
 // ----------------------
 // ENV LOADER
 // ----------------------
@@ -27,7 +38,8 @@ loadEnv(__DIR__ . '/.env');
 // ----------------------
 // CONFIG
 // ----------------------
-$hostname = '{' . $_ENV['IMAP_HOST'] . ':' . $_ENV['IMAP_PORT'] . '/imap/' . $_ENV['IMAP_ENCRYPTION'] . '}Gesendet';
+$hostname = '{' . $_ENV['IMAP_HOST'] . ':' . $_ENV['IMAP_PORT'] . '/imap/' . $_ENV['IMAP_ENCRYPTION'] 
+    . '}Gesendet';
 
 $username = $_ENV['IMAP_USER'];
 $password = $_ENV['IMAP_PASSWORD'];
@@ -37,6 +49,7 @@ $myAddresses = [
     'info@sva-bl.ch'
 ];
 
+// Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec
 $sinceDate = '1-Jan-2024';
 
 
@@ -70,10 +83,7 @@ $subjects = [];
 if ($emails) {
 
     rsort($emails);
-
-    // LIMIT (wichtig)
-    $emails = array_slice($emails, 0, 300);
-
+   
     foreach ($emails as $email_number) {
 
         $overview = imap_fetch_overview($inbox, $email_number, 0);
@@ -91,7 +101,17 @@ if ($emails) {
                 $subject = $mail->subject ?? '(kein Betreff)';
                 $subject = imap_utf8($subject);
 
-                $subjects[] = $subject;
+                // 👉 NEU: Nummern holen
+                $numbers = extractNumbersFromMail($inbox, $email_number, $subject);
+
+                // speichern
+                if (!empty($numbers)) {
+                    foreach ($numbers as $num) {
+                        $subjects[] = $subject . ' | NR: ' . $num;
+                    }
+                } else {
+                    $subjects[] = $subject;
+                }
 
                 break;
             }
@@ -103,7 +123,7 @@ if ($emails) {
 // ----------------------
 // SORT + DEDUPE
 // ----------------------
-$subjects = array_unique($subjects);
+
 sort($subjects);
 
 

@@ -118,13 +118,13 @@ function saveNumbersAutoPath($numbers)
     $baseDir = 'C:/Users/Iwan/Documents/Buerokratie';
     $year = date('Y');
 
-    $targetDir = $baseDir . '/' . $year . '/nr_from_imap';
+    $targetDir = $baseDir . '/' . $year . '/abrechnungs_nr';
 
     if (!is_dir($targetDir)) {
         mkdir($targetDir, 0777, true);
     }
 
-    $filePath = $targetDir . '/nr_from_imap.txt';
+    $filePath = $targetDir . '/abrechnungs_nr.txt';
 
     file_put_contents($filePath, implode(PHP_EOL, $numbers));
 
@@ -140,7 +140,7 @@ function saveLocal($numbers)
         mkdir($targetDir, 0777, true);
     }
 
-    $filePath = $targetDir . '/nr_from_imap.txt';
+    $filePath = $targetDir . '/abrechnungs_nr.txt';
 
     file_put_contents($filePath, implode(PHP_EOL, $numbers));
 
