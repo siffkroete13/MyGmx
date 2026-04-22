@@ -1,0 +1,12 @@
+# sensitive
+.env
+
+# output
+subjects.txt
+
+# logs
+*.log
+
+# system
+.DS_Store
+Thumbs.db
